@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define NUM_BYTES 10
+#include <assert.h>
+#include <stdbool.h>
+#include <gmp.h>
 
 #endif
