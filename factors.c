@@ -1,9 +1,76 @@
-
 #include "head_factors.h"
 
-void factor_big_number(void)
+void factor_big_number(char *buff)
 {
-    printf("Calm down dude!\n");
+    bool factored = false;
+    mpz_t n, i, sqpow, remainder, division, aux_i;
+    mpz_init_set_str(n, buff, 10);
+    mpz_inits(sqpow, remainder, division, aux_i, NULL);
+    // mpz_init_set_ui(i, 1000000002);
+    mpz_init_set_ui(i, 2);
+    buff[strlen(buff) - 1] = '\0';
+
+    mpz_cdiv_r(remainder, n, i);
+    if (mpz_cmp_ui(remainder, 0) == 0)
+    {
+        mpz_cdiv_q(division, n, i);
+        printf("%s=", buff);
+        mpz_out_str(stdout, 10, division);
+        printf("*2\n");
+        return;
+    }
+
+    mpz_set_str(i, "3", 10);
+    mpz_cdiv_r(remainder, n, i);
+    if (mpz_cmp_ui(remainder, 0) == 0)
+    {
+        mpz_cdiv_q(division, n, i);
+        printf("%s=", buff);
+        mpz_out_str(stdout, 10, division);
+        printf("*3\n");
+        return;
+    }
+
+    mpz_set_str(i, "6", 10);
+    mpz_sub_ui(aux_i, i, 1);
+    mpz_pow_ui(sqpow, aux_i, 2);
+
+    while (mpz_cmpabs(n, sqpow) >= 0)
+    {
+        mpz_cdiv_r(remainder, n, aux_i);
+        if (mpz_cmp_ui(remainder, 0) == 0)
+        {
+            mpz_cdiv_q(division, n, aux_i);
+            printf("%s=", buff);
+            mpz_out_str(stdout, 10, division);
+            printf("*");
+            mpz_out_str(stdout, 10, aux_i);
+            printf("\n");
+            factored = true;
+            break;
+        }
+        mpz_sub_ui(aux_i, i, 1);
+        mpz_cdiv_r(remainder, n, aux_i);
+        if (mpz_cmp_ui(remainder, 0) == 0)
+        {
+            mpz_cdiv_q(division, n, aux_i);
+            printf("%s=", buff);
+            mpz_out_str(stdout, 10, division);
+            printf("*");
+            mpz_out_str(stdout, 10, aux_i);
+            printf("\n");
+            factored = true;
+            break;
+        }
+        mpz_add_ui(i, i, 6);
+        mpz_add_ui(aux_i, i, 1);
+        mpz_pow_ui(sqpow, aux_i, 2);
+    }
+    if (!factored)
+    {
+        printf("%s=%s*1\n", buff, buff);
+    }
+    mpz_clears(n, sqpow, i, remainder, division, aux_i, NULL);
 }
 
 void factor_small_number(char *buff)
@@ -54,25 +121,20 @@ int main(int argc, char **argv)
     FILE *file = NULL;
     char *buff = NULL;
     size_t buff_size = 0;
-    void *num = NULL;
-    unsigned long long int n = 0;
-    mpz_t ln;
 
     if (argc != 2)
         fprintf(stderr, "Usage factors <file>\n"), exit(1);
-
-    mpz_init(ln);
     file = fopen(argv[1], "r");
+    if (!file)
+        fprintf(stderr, "file %s could not be opened\n", argv[1]), exit(1);
     while (getline(&buff, &buff_size, file) != EOF)
     {
-        if (strlen(buff) < 19)
+        if (strlen(buff) < 20)
             factor_small_number(buff);
         else
-            factor_big_number();
+            factor_big_number(buff);
     }
     free(buff);
     fclose(file);
-
-    mpz_clear(ln);
     return (0);
 }
